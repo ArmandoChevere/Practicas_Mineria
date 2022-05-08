@@ -27,5 +27,8 @@ for i in range(len(X)):
     plt.plot(X[i][0], X[i][1], colors[labels[i]], markersize=10)
 
 plt.scatter(centroids[:,0], centroids[:,1], marker = 'x', s=150, linewidths=5, zorder=10)
+plt.xlabel("Años", fontsize=14)
+plt.ylabel("Score", fontsize=14)
+plt.title("Clustering", fontsize=18)
 plt.savefig('/Users/Armando/Desktop/CodigoPython/Practica_9/clustering.png')
 plt.show()
