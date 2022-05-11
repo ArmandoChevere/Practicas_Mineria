@@ -1,3 +1,4 @@
+from re import X
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import numbers
@@ -7,6 +8,8 @@ from statsmodels.stats.outliers_influence import summary_table
 from typing import Tuple, Dict
 import numpy as np
 
+
+'''
 datos = pd.read_csv("/Users/Armando/Desktop/CodigoPython/games-data-limpio.csv")
 df = pd.DataFrame(datos)
 
@@ -66,23 +69,25 @@ plt.title("Forecast", fontsize=18)
 plt.legend(loc='best')
 plt.savefig('/Users/Armando/Desktop/CodigoPython/Practica_7/forecasting_Score_Anio.png')
 plt.show()
-
-
-
 '''
+
+
+
+
+
 
 def print_tabulate(df: pd.DataFrame):
     print(tabulate(df, headers=df.columns, tablefmt="orgtbl"))
 
 def transform_variable(df: pd.DataFrame, x:str)->pd.Series:
-    if isinstance(df[x][0], numbers.Number):
+    if isinstance(df[x][df.index[0]], numbers.Number):
         return df[x] # type: pd.Series
     else:
         return pd.Series([i for i in range(0, len(df[x]))])
 
 def linear_regression(df: pd.DataFrame, x:str, y: str)->Dict[str, float]:
     fixed_x = transform_variable(df, x)
-    model= sm.OLS(df[y],sm.add_constant(fixed_x)).fit()
+    model= sm.OLS(list(df[y]),sm.add_constant(fixed_x)).fit()
     bands = pd.read_html(model.summary().tables[1].as_html(),header=0,index_col=0)[0]
     print_tabulate(pd.read_html(model.summary().tables[1].as_html(),header=0,index_col=0)[0])
     coef = pd.read_html(model.summary().tables[1].as_html(),header=0,index_col=0)[0]['coef']
@@ -91,17 +96,43 @@ def linear_regression(df: pd.DataFrame, x:str, y: str)->Dict[str, float]:
 
 def plt_lr(df: pd.DataFrame, x:str, y: str, m: float, b: float, r2: float, r2_adj: float, low_band: float, hi_band: float, colors: Tuple[str,str]):
     fixed_x = transform_variable(df, x)
-    df.plot(x=x,y=y, kind='scatter')
+    # df.plot(x=x,y=y, kind='scatter')
     plt.plot(df[x],[ m * x + b for _, x in fixed_x.items()], color=colors[0])
     plt.fill_between(df[x],
                      [ m * x  + low_band for _, x in fixed_x.items()],
                      [ m * x + hi_band for _, x in fixed_x.items()], alpha=0.2, color=colors[1])
 
 
-datos = pd.read_csv("/Users/Armando/Desktop/CodigoPython/games-data-limpio.csv")
+datos = pd.read_csv("/Users/Armando/Desktop/CodigoPython/df_anios.csv")
 df = pd.DataFrame(datos)
 
-df_anio = df.groupby("Anio").aggregate(Score_Prom=pd.NamedAgg(column="Score", aggfunc=pd.DataFrame.mean))
+x = "Anio"
+y = "Score_Prom"
+
+df.plot(x=x,y=y, kind='scatter')
+# a = linear_regression(df, x,y)
+# plt_lr(df=df, x=x, y=y, colors=('red', 'orange'), **a)
+a = linear_regression(df.head(13), x,y)
+plt_lr(df=df.head(13), x=x, y=y, colors=('red', 'orange'), **a)
+
+a = linear_regression(df.tail(13), x,y)
+plt_lr(df=df.tail(13), x=x, y=y, colors=('blue', 'purple'), **a)
+# df_j = df[pd.to_datetime(df[x]).dt.dayofweek == 4]
+# print_tabulate(df_j)
+# a = linear_regression(df_j, x,y)
+# plt_lr(df=df_j, x=x, y=y, colors=('blue', 'blue'), **a)
+#
+plt.title("Forecasting")
+plt.xlabel("Años")
+plt.ylabel("Score_Prom")
+plt.xticks(rotation=90)
+plt.savefig('/Users/Armando/Desktop/CodigoPython/Practica_7/lr_Score_Anio.png')
+plt.close()
+
+
+'''
+
+# df_anio = df.groupby("Anio").aggregate(Score_Prom=pd.NamedAgg(column="Score", aggfunc=pd.DataFrame.mean))
 # df_anio["Score_Prom"] = df_anio["Score_Prom"]**10
 df_anio.reset_index(inplace=True)
 print_tabulate(df_anio)
@@ -114,4 +145,3 @@ plt.savefig('/Users/Armando/Desktop/CodigoPython/Practica_7/lr_Score_Anio.png')
 plt.close()
 
 '''
-
